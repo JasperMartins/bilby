@@ -143,6 +143,26 @@ class TestDynesty(unittest.TestCase):
         self.assertEqual(self.dysampler.internal_sampler_next.naccept, 5)
         self.assertEqual(self.dysampler.internal_sampler_next.maxmcmc, 200)
 
+    def test_sampler_kwargs_custom(self):
+        base_sample = bilby.core.sampler.dynesty_utils.EnsembleWalkSampler
+
+        class custom_sample(base_sample):
+
+            _init_kwargs = {"custom_kwarg"}
+
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.custom_kwarg = kwargs.get("custom_kwarg")
+
+        self.init_sampler(sample=custom_sample, naccept=5,
+                          maxmcmc=200, custom_sampler_kwargs={"custom_kwarg": 5})
+        self.assertIsInstance(
+            self.dysampler.internal_sampler_next, custom_sample
+        )
+        self.assertEqual(self.dysampler.internal_sampler_next.naccept, 5)
+        self.assertEqual(self.dysampler.internal_sampler_next.maxmcmc, 200)
+        self.assertEqual(self.dysampler.internal_sampler_next.custom_kwarg, 5)
+
     def test_run_test_runs(self):
         self.sampler._run_test()
 
